@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Phishing Detector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-analyze {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-analyze:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-analyze:active {
+            transform: translateY(0);
+        }
+
+        .btn-clear {
+            background: #f0f0f0;
+            color: #333;
+            border: 2px solid #ddd;
+        }
+
+        .btn-clear:hover {
+            background: #e8e8e8;
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .results-section.visible {
+            display: block;
+        }
+
+        .result-card {
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 5px solid #ddd;
+        }
+
+        .result-card.safe {
+            background: #e8f5e9;
+            border-left-color: #4caf50;
+        }
+
+        .result-card.warning {
+            background: #fff3e0;
+            border-left-color: #ff9800;
+        }
+
+        .result-card.danger {
+            background: #ffebee;
+            border-left-color: #f44336;
+        }
+
+        .result-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-card.safe .result-title {
+            color: #2e7d32;
+        }
+
+        .result-card.warning .result-title {
+            color: #e65100;
+        }
+
+        .result-card.danger .result-title {
+            color: #c62828;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .badge.safe {
+            background: #4caf50;
+            color: white;
+        }
+
+        .badge.warning {
+            background: #ff9800;
+            color: white;
+        }
+
+        .badge.danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .risk-meter {
+            margin: 15px 0;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .risk-level {
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 5px;
+        }
+
+        .risk-level.low {
+            width: 33%;
+            background: #4caf50;
+        }
+
+        .risk-level.medium {
+            width: 66%;
+            background: #ff9800;
+        }
+
+        .risk-level.high {
+            width: 100%;
+            background: #f44336;
+        }
+
+        .checks-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        .checks-list li {
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .check-icon {
+            font-size: 1.3em;
+            min-width: 25px;
+            text-align: center;
+        }
+
+        .check-icon.pass::before {
+            content: "✓";
+            color: #4caf50;
+        }
+
+        .check-icon.fail::before {
+            content: "✗";
+            color: #f44336;
+        }
+
+        .check-icon.warn::before {
+            content: "!";
+            color: #ff9800;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #999;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-box h3 {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .stat-box .value {
+            font-size: 2em;
+            font-weight: 700;
+        }
+
+        .info-box {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-box p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab {
+                padding: 12px 15px;
+            }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Advanced Phishing Detector</h1>
+            <p>Analyze URLs, emails, and websites for phishing threats</p>
+        </div>
+
+        <div class="input-section">
+            <div class="tabs">
+                <button class="tab active" data-tab="url">URL Analyzer</button>
+                <button class="tab" data-tab="email">Email Analyzer</button>
+                <button class="tab" data-tab="text">Text Analyzer</button>
+            </div>
+
+            <div id="url" class="tab-content active">
+                <div class="input-group">
+                    <label for="urlInput">Enter URL to analyze:</label>
+                    <input type="text" id="urlInput" placeholder="https://example.com" />
+                </div>
+            </div>
+
+            <div id="email" class="tab-content">
+                <div class="input-group">
+                    <label for="emailInput">Enter Email Address:</label>
+                    <input type="text" id="emailInput" placeholder="user@example.com" />
+                </div>
+                <div class="input-group">
+                    <label for="emailBodyInput">Enter Email Body (optional):</label>
+                    <textarea id="emailBodyInput" placeholder="Paste email content here..."></textarea>
+                </div>
+            </div>
+
+            <div id="text" class="tab-content">
+                <div class="input-group">
+                    <label for="textInput">Enter Text to Analyze:</label>
+                    <textarea id="textInput" placeholder="Paste website content, message, or text here..."></textarea>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-analyze" id="analyzeBtn">Analyze</button>
+                <button class="btn-clear" id="clearBtn">Clear</button>
+            </div>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <div id="urlResults"></div>
+            <div id="emailResults"></div>
+            <div id="textResults"></div>
+        </div>
+    </div>
+
+    <script>
+        // Phishing Detection Engine
+        class PhishingDetector {
+            constructor() {
+                this.suspiciousKeywords = [
+                    'verify account', 'confirm identity', 'update payment',
+                    'click here', 'act now', 'urgent action', 'limited time',
+                    'claim prize', 'won a gift', 'tax refund', 'inheritance',
+                    'reset password', 'confirm password', 'unusual activity',
+                    'suspicious activity', 'validate account', 'reactivate account'
+                ];
+
+                this.phishingDomains = [
+                    'paypa1.com', 'gogle.com', 'amaz0n.com', 'faceb0ok.com',
+                    'instag ram.com', 'linkedín.com', 'micros0ft.com'
+                ];
+
+                this.knownPhishingPatterns = [
+                    /(.+)\1{2,}/i, // Repeated characters
+                    /[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/i, // IP address
+                    /b[i!1][t7][c¢]/i, // Crypto variations
+                    /p[a@][y1][p][a@][l1]/i, // PayPal variations
+                    /g[o0][o0]gle/i, // Google variations
+                ];
+
+                this.commonBanks = ['bofa', 'chase', 'wellsfargo', 'citi', 'amex', 'paypal'];
+                this.commonRetailers = ['amazon', 'ebay', 'walmart', 'target', 'bestbuy'];
+                this.commonServices = ['google', 'microsoft', 'apple', 'facebook', 'twitter'];
+            }
+
+            analyzeURL(url) {
+                const results = {
+                    url: url,
+                    riskLevel: 'low',
+                    score: 0,
+                    checks: [],
+                    details: []
+                };
+
+                if (!url.trim()) {
+                    results.checks.push({ type: 'error', message: 'URL is empty' });
+                    return results;
+                }
+
+                try {
+                    // Protocol check
+                    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                        results.checks.push({
+                            type: 'fail',
+                            message: 'No protocol detected (http:// or https://)',
+                            severity: 'high'
+                        });
+                        results.score += 25;
+                    } else if (url.startsWith('http://')) {
+                        results.checks.push({
+                            type: 'warn',
+                            message: 'Not using HTTPS (less secure)',
+                            severity: 'medium'
+                        });
+                        results.score += 15;
+                    } else {
+                        results.checks.push({
+                            type: 'pass',
+                            message: 'Using HTTPS encryption',
+                            severity: 'low'
+                        });
+                    }
+
+                    const urlObj = new URL(url);
+                    let domain = urlObj.hostname.toLowerCase();
+
+                    // IP address check
+                    if (/^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$/.test(domain)) {
+                        results.checks.push({
+                            type: 'fail',
+                            message: 'URL uses IP address instead of domain',
+                            severity: 'critical'
+                        });
+                        results.score += 40;
+                    }
+
+                    // Domain length check
+                    if (domain.length > 40) {
+                        results.checks.push({
+                            type: 'warn',
+                            message: 'Suspiciously long domain name',
+                            severity: 'medium'
+                        });
+                        results.score += 10;
+                    }
+
+                    // Special characters in domain
+                    if (domain.includes('--') || domain.includes('__')) {
+                        results.checks.push({
+                            type: 'warn',
+                            message: 'Domain contains suspicious character sequences',
+                            severity: 'medium'
+                        });
+                        results.score += 15;
+                    }
+
+                    // Suspicious TLD
+                    const tld = domain.split('.').pop();
+                    const suspiciousTLDs = ['tk', 'ml', 'ga', 'cf', 'top', 'download', 'zip', 'online', 'site', 'space'];
+                    if (suspiciousTLDs.includes(tld)) {
+                        results.checks.push({
+                            type: 'warn',
+                            message: `Suspicious TLD (.${tld}) commonly used for phishing`,
+                            severity: 'high'
+                        });
+                        results.score += 20;
+                    }
+
+                    // Check for domain spoofing
+                    const allParts = domain.split('.');
+                    if (allParts.length > 3) {
+                        results.checks.push({
+                            type: 'warn',
+                            message: 'Subdomain structure might hide real domain',
+                            severity: 'medium'
+                        });
+                        results.score += 12;
+                    }
+
+                    // Check for brand spoofing
+                    this.commonServices.forEach(brand => {
+                        if (this.isSimilarToKnownBrand(domain, brand)) {
+                            results.checks.push({
+                                type: 'fail',
+                                message: `Domain appears to spoof "${brand}"`,
+                                severity: 'high'
+                            });
+                            results.score += 30;
+                        }
+                    });
+
+                    // Hyphens in domain
+                    if (domain.includes('-')) {
+                        results.checks.push({
+                            type: 'warn',
+                            message: 'Domain contains hyphens (common in phishing)',
+                            severity: 'medium'
+                        });
+                        results.score += 10;
+                    }
+
+                    // Numbers in domain
+                    if (/[0-9]/.test(domain)) {
+                        results.checks.push({
+                            type: 'warn',
+                            message: 'Domain contains numbers (possible character substitution)',
+                            severity: 'low'
+                        });
+                        results.score += 5;
+                    }
+
+                    // URL length
+                    if (url.length > 100) {
+                        results.checks.push({
+                            type: 'warn',
+                            message: 'Suspiciously long URL (often used to hide destination)',
+                            severity: 'medium'
+                        });
+                        results.score += 10;
+                    }
+
+                    // Query parameters check
+                    if (urlObj.search.length > 50) {
+                        results.checks.push({
+                            type: 'warn',
+                            message: 'Long query string might contain tracking or encoding',
+                            severity: 'low'
+                        });
+                        results.score += 5;
+                    }
+
+                    // Common phishing parameter names
+                    const phishingParams = ['login', 'verify', 'confirm', 'token', 'session', 'account'];
+                    phishingParams.forEach(param => {
+                        if (url.includes(`?${param}=`) || url.includes(`&${param}=`)) {
+                            results.checks.push({
+                                type: 'warn',
+                                message: `Suspicious parameter detected: "${param}"`,
+                                severity: 'medium'
+                            });
+                            results.score += 8;
+                        }
+                    });
+
+                    // Port check
+                    if (urlObj.port && !['80', '443', '8080'].includes(urlObj.port)) {
+                        results.checks.push({
+                            type: 'warn',
+                            message: `Non-standard port (${urlObj.port}) detected`,
+                            severity: 'low'
+                        });
+                        results.score += 5;
+                    }
+
+                } catch (error) {
+                    results.checks.push({
+                        type: 'error',
+                        message: 'Invalid URL format: ' + error.message
+                    });
+                    results.score = 100;
+                }
+
+                // Calculate risk level
+                if (results.score >= 70) {
+                    results.riskLevel = 'danger';
+                } else if (results.score >= 40) {
+                    results.riskLevel = 'warning';
+                } else {
+                    results.riskLevel = 'safe';
+                }
+
+                return results;
+            }
+
+            analyzeEmail(email, body = '') {
+                const results = {
+                    email: email,
+                    riskLevel: 'low',
+                    score: 0,
+                    checks: [],
+                    details: []
+                };
+
+                if (!email.trim()) {
+                    results.checks.push({ type: 'error', message: 'Email is empty' });
+                    return results;
+                }
+
+                // Email format check
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    results.checks.push({
+                        type: 'fail',
+                        message: 'Invalid email format',
+                        severity: 'high'
+                    });
+                    results.score += 40;
+                } else {
+                    results.checks.push({
+                        type: 'pass',
+                        message: 'Valid email format',
+                        severity: 'low'
+                    });
+                }
+
+                const [localPart, domain] = email.split('@');
+
+                // Domain spoofing check
+                this.commonBanks.concat(this.commonRetailers, this.commonServices).forEach(brand => {
+                    if (this.isSimilarToKnownBrand(domain, brand) && domain !== brand + '.com') {
+                        results.checks.push({
+                            type: 'fail',
+                            message: `Email domain attempts to spoof "${brand}"`,
+                            severity: 'high'
+                        });
+                        results.score += 35;
+                    }
+                });
+
+                // Suspicious local part
+                if (localPart.includes('..')) {
+                    results.checks.push({
+                        type: 'warn',
+                        message: 'Email contains consecutive dots',
+                        severity: 'medium'
+                    });
+                    results.score += 15;
+                }
+
+                // Analysis of email body
+                if (body.trim()) {
+                    const bodyLower = body.toLowerCase();
+                    const suspiciousCount = this.suspiciousKeywords.filter(keyword =>
+                        bodyLower.includes(keyword)
+                    ).length;
+
+                    if (suspiciousCount > 0) {
+                        results.checks.push({
+                            type: 'warn',
+                            message: `Found ${suspiciousCount} suspicious keyword(s) in email body`,
+                            severity: 'high'
+                        });
+                        results.score += suspiciousCount * 10;
+                    }
+
+                    // URL in email body
+                    if (/https?:\/\/[^\s]+/.test(body)) {
+                        results.checks.push({
+                            type: 'warn',
+                            message: 'Email contains URL(s) - verify domain is legitimate',
+                            severity: 'medium'
+                        });
+                        results.score += 10;
+                    }
+
+                    // Urgency indicators
+                    if (/urgent|immediate|now|act now|hurry|limited time/i.test(body)) {
+                        results.checks.push({
+                            type: 'warn',
+                            message: 'Email uses urgency tactics',
+                            severity: 'high'
+                        });
+                        results.score += 15;
+                    }
+
+                    // Requests for sensitive data
+                    if (/password|credit card|ssn|social security|bank account|login/i.test(body)) {
+                        results.checks.push({
+                            type: 'fail',
+                            message: 'Email requests sensitive information',
+                            severity: 'critical'
+                        });
+                        results.score += 40;
+                    }
+                }
+
+                // Calculate risk level
+                if (results.score >= 70) {
+                    results.riskLevel = 'danger';
+                } else if (results.score >= 40) {
+                    results.riskLevel = 'warning';
+                } else {
+                    results.riskLevel = 'safe';
+                }
+
+                return results;
+            }
+
+            analyzeText(text) {
+                const results = {
+                    riskLevel: 'low',
+                    score: 0,
+                    checks: [],
+                    details: []
+                };
+
+                if (!text.trim()) {
+                    results.checks.push({ type: 'error', message: 'Text is empty' });
+                    return results;
+                }
+
+                const textLower = text.toLowerCase();
+
+                // Count suspicious keywords
+                const suspiciousCount = this.suspiciousKeywords.filter(keyword =>
+                    textLower.includes(keyword)
+                ).length;
+
+                if (suspiciousCount > 0) {
+                    results.checks.push({
+                        type: suspiciousCount > 3 ? 'fail' : 'warn',
+                        message: `Found ${suspiciousCount} suspicious keyword(s)`,
+                        severity: suspiciousCount > 3 ? 'high' : 'medium'
+                    });
+                    results.score += suspiciousCount * 8;
+                }
+
+                // Urgency and fear tactics
+                if (/urgent|immediate|act now|hurry|limited time|don't delay/i.test(text)) {
+                    results.checks.push({
+                        type: 'warn',
+                        message: 'Text uses urgency or fear tactics',
+                        severity: 'high'
+                    });
+                    results.score += 15;
+                }
+
+                // Request for credentials
+                if (/password|credit card|ssn|social security|bank|routing number/i.test(text)) {
+                    results.checks.push({
+                        type: 'fail',
+                        message: 'Text requests sensitive credentials',
+                        severity: 'critical'
+                    });
+                    results.score += 40;
+                }
+
+                // Generic greetings
+                if (/dear (customer|user|member|valued)|dear sir|to whom it may/i.test(text)) {
+                    results.checks.push({
+                        type: 'warn',
+                        message: 'Generic greeting often used in phishing',
+                        severity: 'medium'
+                    });
+                    results.score += 10;
+                }
+
+                // Poor spelling/grammar indicators
+                const commonMisspellings = ['recieve', 'occured', 'seperate', 'accomodate', 'definately'];
+                const misspellingCount = commonMisspellings.filter(word => textLower.includes(word)).length;
+                if (misspellingCount > 0) {
+                    results.checks.push({
+                        type: 'warn',
+                        message: `Found ${misspellingCount} common misspelling(s)`,
+                        severity: 'medium'
+                    });
+                    results.score += misspellingCount * 5;
+                }
+
+                // Links in text
+                const linkMatches = text.match(/https?:\/\/[^\s]+/gi);
+                if (linkMatches) {
+                    results.checks.push({
+                        type: 'info',
+                        message: `Found ${linkMatches.length} link(s) - verify they are legitimate`,
+                        severity: 'medium'
+                    });
+                }
+
+                // CTA buttons that request action
+                if (/confirm|verify|validate|update now|click here|download now/i.test(text)) {
+                    results.checks.push({
+                        type: 'warn',
+                        message: 'Suspicious call-to-action detected',
+                        severity: 'high'
+                    });
+                    results.score += 12;
+                }
+
+                // Known phishing patterns
+                this.knownPhishingPatterns.forEach(pattern => {
+                    if (pattern.test(text)) {
+                        results.checks.push({
+                            type: 'warn',
+                            message: 'Text matches known phishing pattern',
+                            severity: 'high'
+                        });
+                        results.score += 10;
+                    }
+                });
+
+                // Calculate risk level
+                if (results.score >= 70) {
+                    results.riskLevel = 'danger';
+                } else if (results.score >= 40) {
+                    results.riskLevel = 'warning';
+                } else {
+                    results.riskLevel = 'safe';
+                }
+
+                return results;
+            }
+
+            isSimilarToKnownBrand(domain, brand) {
+                domain = domain.replace(/[^a-z0-9]/g, '').toLowerCase();
+                brand = brand.replace(/[^a-z0-9]/g, '').toLowerCase();
+
+                // Exact brand in domain
+                if (domain.includes(brand)) return true;
+
+                // Similar with character substitution
+                const substitutions = {
+                    '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '8': 'b'
+                };
+
+                let testDomain = domain;
+                for (let [num, char] of Object.entries(substitutions)) {
+                    testDomain = testDomain.replace(new RegExp(num, 'g'), char);
+                }
+
+                return testDomain.includes(brand);
+            }
+        }
+
+        // UI Controller
+        const detector = new PhishingDetector();
+        const resultsSection = document.getElementById('resultsSection');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        // Tab switching
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.dataset.tab;
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(tc => tc.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(tabName).classList.add('active');
+                
+                resultsSection.classList.remove('visible');
+            });
+        });
+
+        // Analyze button
+        analyzeBtn.addEventListener('click', () => {
+            const activeTab = document.querySelector('.tab.active').dataset.tab;
+            let results = null;
+
+            if (activeTab === 'url') {
+                const url = document.getElementById('urlInput').value;
+                results = detector.analyzeURL(url);
+                displayURLResults(results);
+            } else if (activeTab === 'email') {
+                const email = document.getElementById('emailInput').value;
+                const body = document.getElementById('emailBodyInput').value;
+                results = detector.analyzeEmail(email, body);
+                displayEmailResults(results);
+            } else if (activeTab === 'text') {
+                const text = document.getElementById('textInput').value;
+                results = detector.analyzeText(text);
+                displayTextResults(results);
+            }
+        });
+
+        // Clear button
+        clearBtn.addEventListener('click', () => {
+            document.getElementById('urlInput').value = '';
+            document.getElementById('emailInput').value = '';
+            document.getElementById('emailBodyInput').value = '';
+            document.getElementById('textInput').value = '';
+            resultsSection.classList.remove('visible');
+        });
+
+        // Display results
+        function displayURLResults(results) {
+            const riskIcon = {
+                safe: '✓',
+                warning: '⚠',
+                danger: '✗'
+            };
+
+            let checksHTML = results.checks.map(check => {
+                const icon = check.type === 'pass' ? 'pass' : check.type === 'fail' ? 'fail' : 'warn';
+                return `
+                    <li>
+                        <span class="check-icon ${icon}"></span>
+                        <span>${check.message}</span>
+                    </li>
+                `;
+            }).join('');
+
+            document.getElementById('urlResults').innerHTML = `
+                <div class="result-card ${results.riskLevel}">
+                    <div class="result-title">
+                        ${riskIcon[results.riskLevel]}
+                        <span>URL Analysis Result</span>
+                        <span class="badge ${results.riskLevel}">
+                            ${results.riskLevel.toUpperCase()} - ${Math.min(100, results.score)}% Risk
+                        </span>
+                    </div>
+                    <div class="risk-meter">
+                        <div class="risk-level ${results.riskLevel === 'safe' ? 'low' : results.riskLevel === 'warning' ? 'medium' : 'high'}"></div>
+                    </div>
+                    <p><strong>URL:</strong> ${escapeHtml(results.url)}</p>
+                    <ul class="checks-list">${checksHTML}</ul>
+                    <div class="info-box">
+                        <p><strong>Recommendation:</strong> ${getRecommendation(results.riskLevel)}</p>
+                    </div>
+                </div>
+            `;
+            resultsSection.classList.add('visible');
+        }
+
+        function displayEmailResults(results) {
+            const riskIcon = {
+                safe: '✓',
+                warning: '⚠',
+                danger: '✗'
+            };
+
+            let checksHTML = results.checks.map(check => {
+                const icon = check.type === 'pass' ? 'pass' : check.type === 'fail' ? 'fail' : 'warn';
+                return `
+                    <li>
+                        <span class="check-icon ${icon}"></span>
+                        <span>${check.message}</span>
+                    </li>
+                `;
+            }).join('');
+
+            document.getElementById('emailResults').innerHTML = `
+                <div class="result-card ${results.riskLevel}">
+                    <div class="result-title">
+                        ${riskIcon[results.riskLevel]}
+                        <span>Email Analysis Result</span>
+                        <span class="badge ${results.riskLevel}">
+                            ${results.riskLevel.toUpperCase()} - ${Math.min(100, results.score)}% Risk
+                        </span>
+                    </div>
+                    <div class="risk-meter">
+                        <div class="risk-level ${results.riskLevel === 'safe' ? 'low' : results.riskLevel === 'warning' ? 'medium' : 'high'}"></div>
+                    </div>
+                    <p><strong>Email:</strong> ${escapeHtml(results.email)}</p>
+                    <ul class="checks-list">${checksHTML}</ul>
+                    <div class="info-box">
+                        <p><strong>Recommendation:</strong> ${getRecommendation(results.riskLevel)}</p>
+                    </div>
+                </div>
+            `;
+            resultsSection.classList.add('visible');
+        }
+
+        function displayTextResults(results) {
+            const riskIcon = {
+                safe: '✓',
+                warning: '⚠',
+                danger: '✗'
+            };
+
+            let checksHTML = results.checks.map(check => {
+                const icon = check.type === 'pass' ? 'pass' : check.type === 'fail' ? 'fail' : (check.type === 'info' ? 'warn' : check.type === 'error' ? 'fail' : 'warn');
+                return `
+                    <li>
+                        <span class="check-icon ${icon}"></span>
+                        <span>${check.message}</span>
+                    </li>
+                `;
+            }).join('');
+
+            document.getElementById('textResults').innerHTML = `
+                <div class="result-card ${results.riskLevel}">
+                    <div class="result-title">
+                        ${riskIcon[results.riskLevel]}
+                        <span>Text Analysis Result</span>
+                        <span class="badge ${results.riskLevel}">
+                            ${results.riskLevel.toUpperCase()} - ${Math.min(100, results.score)}% Risk
+                        </span>
+                    </div>
+                    <div class="risk-meter">
+                        <div class="risk-level ${results.riskLevel === 'safe' ? 'low' : results.riskLevel === 'warning' ? 'medium' : 'high'}"></div>
+                    </div>
+                    <ul class="checks-list">${checksHTML}</ul>
+                    <div class="info-box">
+                        <p><strong>Recommendation:</strong> ${getRecommendation(results.riskLevel)}</p>
+                    </div>
+                </div>
+            `;
+            resultsSection.classList.add('visible');
+        }
+
+        function getRecommendation(riskLevel) {
+            const recommendations = {
+                safe: 'This item appears to be legitimate. However, always remain cautious and verify suspicious requests independently.',
+                warning: 'This item has suspicious characteristics. Exercise caution, verify links before clicking, and do not share personal information.',
+                danger: '⚠️ WARNING: This item shows strong signs of phishing. DO NOT interact with it. Report to the service provider immediately.'
+            };
+            return recommendations[riskLevel] || 'Unknown risk level';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Enter key support
+        document.getElementById('urlInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') analyzeBtn.click();
+        });
+        document.getElementById('emailInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') analyzeBtn.click();
+        });
+    </script>
+</body>
+</html>
